@@ -14,8 +14,26 @@
             <div id="selection" class="selection-box"></div>
         </div>
         <div class="controls">
-            <button id="zoomBtn">Zoom to Selection</button>
-            <button id="resetBtn">Reset View</button>
+            <div class="control-group">
+                <label for="fractalType">Fractal Type:</label>
+                <select id="fractalType">
+                    <option value="mandelbrot">Mandelbrot Set</option>
+                    <option value="julia">Julia Set</option>
+                    <option value="burningShip">Burning Ship</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="colorScheme">Color Scheme:</label>
+                <select id="colorScheme">
+                    <option value="spectrum">Spectrum Blue</option>
+                    <option value="fire">Fire</option>
+                    <option value="rainbow">Rainbow</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <button id="zoomBtn">Zoom to Selection</button>
+                <button id="resetBtn">Reset View</button>
+            </div>
         </div>
         <div class="info">
             <p>Click and drag to select an area, then click "Zoom to Selection" to zoom in.</p>

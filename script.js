@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectionBox = document.getElementById('selection');
     const zoomBtn = document.getElementById('zoomBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const fractalTypeSelect = document.getElementById('fractalType');
+    const colorSchemeSelect = document.getElementById('colorScheme');
 
     // Set canvas dimensions
     canvas.width = 800;
@@ -15,6 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let xMax = 1;
     let yMin = -1.2;
     let yMax = 1.2;
+    
+    // Julia set constant
+    const juliaConstant = { real: -0.7, imag: 0.27 };
 
     // Adjust yMin and yMax to match canvas aspect ratio
     const aspectRatio = canvas.height / canvas.width;
@@ -30,11 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectionEnd = { x: 0, y: 0 };
     let hasSelection = false;
 
-    // Max iterations for Mandelbrot calculation
+    // Max iterations for fractal calculation
     const maxIterations = 100;
 
-    // Color mapping function
-    function getColor(iterations) {
+    // Color mapping functions
+    function getSpectrumColor(iterations) {
         if (iterations === maxIterations) {
             return '#000000'; // Black for points in the set
         }
@@ -45,6 +50,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const lightness = 50;
         
         return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+    
+    function getFireColor(iterations) {
+        if (iterations === maxIterations) {
+            return '#000000'; // Black for points in the set
+        }
+        
+        // Create a fire gradient (red to yellow)
+        const hue = 30 - (iterations / maxIterations) * 30; // Yellow to red
+        const saturation = 100;
+        const lightness = Math.min(50, 10 + (iterations / maxIterations) * 50);
+        
+        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+    
+    function getRainbowColor(iterations) {
+        if (iterations === maxIterations) {
+            return '#000000'; // Black for points in the set
+        }
+        
+        // Create a rainbow gradient cycling through all hues
+        const hue = (iterations * 360 / maxIterations) % 360;
+        const saturation = 100;
+        const lightness = 50;
+        
+        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+    
+    // Get color based on selected scheme
+    function getColor(iterations) {
+        const scheme = colorSchemeSelect.value;
+        
+        switch (scheme) {
+            case 'fire':
+                return getFireColor(iterations);
+            case 'rainbow':
+                return getRainbowColor(iterations);
+            case 'spectrum':
+            default:
+                return getSpectrumColor(iterations);
+        }
     }
 
     // Calculate if a point is in the Mandelbrot set
@@ -71,9 +117,78 @@ document.addEventListener('DOMContentLoaded', () => {
         
         return iteration;
     }
+    
+    // Calculate if a point is in the Julia set
+    function calculateJulia(zReal, zImag) {
+        let iteration = 0;
+        const cReal = juliaConstant.real;
+        const cImag = juliaConstant.imag;
+        
+        // z = z^2 + c (with fixed c)
+        while (zReal * zReal + zImag * zImag < 4 && iteration < maxIterations) {
+            // Calculate z^2
+            const zRealSquared = zReal * zReal;
+            const zImagSquared = zImag * zImag;
+            
+            // Calculate next z value with fixed c
+            const zRealNew = zRealSquared - zImagSquared + cReal;
+            const zImagNew = 2 * zReal * zImag + cImag;
+            
+            zReal = zRealNew;
+            zImag = zImagNew;
+            
+            iteration++;
+        }
+        
+        return iteration;
+    }
+    
+    // Calculate if a point is in the Burning Ship fractal
+    function calculateBurningShip(cReal, cImag) {
+        let zReal = 0;
+        let zImag = 0;
+        let iteration = 0;
+        
+        // z = (|Re(z)| + i|Im(z)|)^2 + c
+        while (zReal * zReal + zImag * zImag < 4 && iteration < maxIterations) {
+            // Take absolute values
+            zReal = Math.abs(zReal);
+            zImag = Math.abs(zImag);
+            
+            // Calculate z^2
+            const zRealSquared = zReal * zReal;
+            const zImagSquared = zImag * zImag;
+            
+            // Calculate next z value
+            const zRealNew = zRealSquared - zImagSquared + cReal;
+            const zImagNew = 2 * zReal * zImag + cImag;
+            
+            zReal = zRealNew;
+            zImag = zImagNew;
+            
+            iteration++;
+        }
+        
+        return iteration;
+    }
+    
+    // Calculate iterations based on selected fractal type
+    function calculateFractal(cReal, cImag) {
+        const fractalType = fractalTypeSelect.value;
+        
+        switch (fractalType) {
+            case 'julia':
+                return calculateJulia(cReal, cImag);
+            case 'burningShip':
+                return calculateBurningShip(cReal, cImag);
+            case 'mandelbrot':
+            default:
+                return calculateMandelbrot(cReal, cImag);
+        }
+    }
 
-    // Render the Mandelbrot set
-    function renderMandelbrot() {
+    // Render the selected fractal
+    function renderFractal() {
         // Create image data for direct pixel manipulation
         const imageData = ctx.createImageData(canvas.width, canvas.height);
         const data = imageData.data;
@@ -85,8 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cReal = xMin + (x / canvas.width) * (xMax - xMin);
                 const cImag = yMin + (y / canvas.height) * (yMax - yMin);
                 
-                // Calculate iterations for this point
-                const iterations = calculateMandelbrot(cReal, cImag);
+                // Calculate iterations for this point based on selected fractal
+                const iterations = calculateFractal(cReal, cImag);
                 
                 // Get color based on iterations
                 const color = getColor(iterations);
@@ -140,6 +255,27 @@ document.addEventListener('DOMContentLoaded', () => {
         selectionBox.style.height = `${height}px`;
     }
 
+    // Update the page title based on the selected fractal
+    function updateTitle() {
+        const fractalType = fractalTypeSelect.value;
+        let title = 'Fractal Viewer';
+        
+        switch (fractalType) {
+            case 'julia':
+                title = 'Julia Set Viewer';
+                break;
+            case 'burningShip':
+                title = 'Burning Ship Fractal Viewer';
+                break;
+            case 'mandelbrot':
+            default:
+                title = 'Mandelbrot Set Viewer';
+                break;
+        }
+        
+        document.querySelector('h1').textContent = title;
+    }
+    
     // Zoom to selection
     function zoomToSelection() {
         if (!hasSelection) return;
@@ -168,15 +304,35 @@ document.addEventListener('DOMContentLoaded', () => {
         zoomBtn.disabled = true;
         
         // Render with new boundaries
-        renderMandelbrot();
+        renderFractal();
     }
 
     // Reset view to initial state
     function resetView() {
-        xMin = -2.5;
-        xMax = 1;
-        yMin = -1.2;
-        yMax = 1.2;
+        // Set appropriate initial boundaries based on fractal type
+        const fractalType = fractalTypeSelect.value;
+        
+        switch (fractalType) {
+            case 'julia':
+                xMin = -2;
+                xMax = 2;
+                yMin = -1.5;
+                yMax = 1.5;
+                break;
+            case 'burningShip':
+                xMin = -2.5;
+                xMax = 1.5;
+                yMin = -2;
+                yMax = 1;
+                break;
+            case 'mandelbrot':
+            default:
+                xMin = -2.5;
+                xMax = 1;
+                yMin = -1.2;
+                yMax = 1.2;
+                break;
+        }
         
         // Adjust for aspect ratio
         const aspectRatio = canvas.height / canvas.width;
@@ -191,15 +347,29 @@ document.addEventListener('DOMContentLoaded', () => {
         zoomBtn.disabled = true;
         
         // Render with initial boundaries
-        renderMandelbrot();
+        renderFractal();
+    }
+
+    // Handle fractal type change
+    function handleFractalTypeChange() {
+        updateTitle();
+        resetView();
+    }
+    
+    // Handle color scheme change
+    function handleColorSchemeChange() {
+        renderFractal();
     }
 
     // Event listeners
     canvas.addEventListener('click', handleCanvasClick);
     zoomBtn.addEventListener('click', zoomToSelection);
     resetBtn.addEventListener('click', resetView);
+    fractalTypeSelect.addEventListener('change', handleFractalTypeChange);
+    colorSchemeSelect.addEventListener('change', handleColorSchemeChange);
     
-    // Initial render
+    // Initial setup
+    updateTitle();
     zoomBtn.disabled = true;
-    renderMandelbrot();
+    renderFractal();
 });
