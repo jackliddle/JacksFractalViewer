@@ -2,8 +2,6 @@
 
 A simple, interactive fractal visualization tool built with pure HTML, CSS, and JavaScript. This application allows you to explore the fascinating world of fractals without requiring any backend server or additional dependencies.
 
-![Fractal Viewer Screenshot](screenshot.png)
-
 ## Features
 
 - **Multiple Fractal Types**: Explore three different fractal types:
