@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mandelbrot Set Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Mandelbrot Set Viewer</h1>
+        <div class="canvas-container">
+            <canvas id="mandelbrotCanvas"></canvas>
+            <div id="selection" class="selection-box"></div>
+        </div>
+        <div class="controls">
+            <button id="zoomBtn">Zoom to Selection</button>
+            <button id="resetBtn">Reset View</button>
+        </div>
+        <div class="info">
+            <p>Click and drag to select an area, then click "Zoom to Selection" to zoom in.</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
