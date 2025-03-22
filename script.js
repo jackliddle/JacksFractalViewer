@@ -38,10 +38,48 @@ document.addEventListener('DOMContentLoaded', () => {
     // Max iterations for fractal calculation
     const maxIterations = 100;
 
+    // HSL to RGB conversion function
+    function hslToRgb(h, s, l) {
+        // Convert HSL percentages to decimals
+        h = h % 360;
+        s = s / 100;
+        l = l / 100;
+        
+        let r, g, b;
+        
+        if (s === 0) {
+            // Achromatic (gray)
+            r = g = b = l;
+        } else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+            
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            
+            r = hue2rgb(p, q, (h / 360 + 1/3) % 1);
+            g = hue2rgb(p, q, (h / 360) % 1);
+            b = hue2rgb(p, q, (h / 360 - 1/3) % 1);
+        }
+        
+        // Convert to 0-255 range
+        return {
+            r: Math.round(r * 255),
+            g: Math.round(g * 255),
+            b: Math.round(b * 255)
+        };
+    }
+
     // Color mapping functions
     function getSpectrumColor(iterations) {
         if (iterations === maxIterations) {
-            return '#000000'; // Black for points in the set
+            return { r: 0, g: 0, b: 0 }; // Black for points in the set
         }
         
         // Create a smooth color gradient based on iteration count
@@ -49,12 +87,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const saturation = 100;
         const lightness = 50;
         
-        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        return hslToRgb(hue, saturation, lightness);
     }
     
     function getFireColor(iterations) {
         if (iterations === maxIterations) {
-            return '#000000'; // Black for points in the set
+            return { r: 0, g: 0, b: 0 }; // Black for points in the set
         }
         
         // Create a fire gradient (red to yellow)
@@ -62,12 +100,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const saturation = 100;
         const lightness = Math.min(50, 10 + (iterations / maxIterations) * 50);
         
-        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        return hslToRgb(hue, saturation, lightness);
     }
     
     function getRainbowColor(iterations) {
         if (iterations === maxIterations) {
-            return '#000000'; // Black for points in the set
+            return { r: 0, g: 0, b: 0 }; // Black for points in the set
         }
         
         // Create a rainbow gradient cycling through all hues
@@ -75,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const saturation = 100;
         const lightness = 50;
         
-        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        return hslToRgb(hue, saturation, lightness);
     }
     
     // Get color based on selected scheme
@@ -203,20 +241,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Calculate iterations for this point based on selected fractal
                 const iterations = calculateFractal(cReal, cImag);
                 
-                // Get color based on iterations
-                const color = getColor(iterations);
-                
-                // Convert hex color to RGB
-                const r = parseInt(color.slice(1, 3), 16) || 0;
-                const g = parseInt(color.slice(3, 5), 16) || 0;
-                const b = parseInt(color.slice(5, 7), 16) || 0;
+                // Get RGB color based on iterations
+                const rgb = getColor(iterations);
                 
                 // Set pixel color in image data
                 const pixelIndex = (y * canvas.width + x) * 4;
-                data[pixelIndex] = r;     // Red
-                data[pixelIndex + 1] = g; // Green
-                data[pixelIndex + 2] = b; // Blue
-                data[pixelIndex + 3] = 255; // Alpha (fully opaque)
+                data[pixelIndex] = rgb.r;     // Red
+                data[pixelIndex + 1] = rgb.g; // Green
+                data[pixelIndex + 2] = rgb.b; // Blue
+                data[pixelIndex + 3] = 255;   // Alpha (fully opaque)
             }
         }
         
