@@ -287,27 +287,6 @@ document.addEventListener('DOMContentLoaded', () => {
         selectionBox.style.width = `${width}px`;
         selectionBox.style.height = `${height}px`;
     }
-
-    // Update the page title based on the selected fractal
-    function updateTitle() {
-        const fractalType = fractalTypeSelect.value;
-        let title = 'Fractal Viewer';
-        
-        switch (fractalType) {
-            case 'julia':
-                title = 'Julia Set Viewer';
-                break;
-            case 'burningShip':
-                title = 'Burning Ship Fractal Viewer';
-                break;
-            case 'mandelbrot':
-            default:
-                title = 'Mandelbrot Set Viewer';
-                break;
-        }
-        
-        document.querySelector('h1').textContent = title;
-    }
     
     // Zoom to selection
     function zoomToSelection() {
@@ -385,7 +364,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle fractal type change
     function handleFractalTypeChange() {
-        updateTitle();
         resetView();
     }
     
@@ -402,7 +380,6 @@ document.addEventListener('DOMContentLoaded', () => {
     colorSchemeSelect.addEventListener('change', handleColorSchemeChange);
     
     // Initial setup
-    updateTitle();
+    resetView(); // Set appropriate boundaries based on selected fractal type
     zoomBtn.disabled = true;
-    renderFractal();
 });

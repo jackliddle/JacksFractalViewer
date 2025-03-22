@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mandelbrot Set Viewer</title>
+    <title>Jacks Fractal Viewer</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Mandelbrot Set Viewer</h1>
+        <h1>Jacks Fractal Viewer</h1>
         <div class="canvas-container">
             <canvas id="mandelbrotCanvas"></canvas>
             <div id="selection" class="selection-box"></div>
@@ -18,7 +18,7 @@
                 <label for="fractalType">Fractal Type:</label>
                 <select id="fractalType">
                     <option value="mandelbrot">Mandelbrot Set</option>
-                    <option value="julia">Julia Set</option>
+                    <option value="julia" selected>Julia Set</option>
                     <option value="burningShip">Burning Ship</option>
                 </select>
             </div>
@@ -27,7 +27,7 @@
                 <select id="colorScheme">
                     <option value="spectrum">Spectrum Blue</option>
                     <option value="fire">Fire</option>
-                    <option value="rainbow">Rainbow</option>
+                    <option value="rainbow" selected>Rainbow</option>
                 </select>
             </div>
             <div class="control-group">
