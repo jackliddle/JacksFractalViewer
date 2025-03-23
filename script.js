@@ -2,8 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get canvas and context
     const canvas = document.getElementById('mandelbrotCanvas');
     const ctx = canvas.getContext('2d');
-    const selectionBox = document.getElementById('selection');
-    const zoomBtn = document.getElementById('zoomBtn');
     const resetBtn = document.getElementById('resetBtn');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
     const fractalTypeSelect = document.getElementById('fractalType');
@@ -93,6 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 controls.style.background = 'rgba(255, 255, 255, 0.8)';
                 controls.style.padding = '10px';
                 controls.style.borderRadius = '5px';
+                controls.style.margin = '0';
+                controls.style.display = 'flex';
+                controls.style.justifyContent = 'center';
             }
             
             if (info) {
@@ -103,6 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 info.style.zIndex = '1000';
                 info.style.background = 'rgba(255, 255, 255, 0.8)';
                 info.style.padding = '5px';
+                info.style.margin = '0';
+                info.style.textAlign = 'center';
             }
         } else {
             // Reset canvas to container size
@@ -121,6 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 controls.style.background = '';
                 controls.style.padding = '';
                 controls.style.borderRadius = '';
+                controls.style.margin = '';
+                controls.style.display = '';
+                controls.style.justifyContent = '';
             }
             
             if (info) {
@@ -131,6 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 info.style.zIndex = '';
                 info.style.background = '';
                 info.style.padding = '';
+                info.style.margin = '';
+                info.style.textAlign = '';
             }
         }
         
@@ -139,11 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFractal();
     }
 
-    // Selection variables
-    let isSelecting = false;
-    let selectionStart = { x: 0, y: 0 };
-    let selectionEnd = { x: 0, y: 0 };
-    let hasSelection = false;
+    // No selection variables needed for direct click-to-zoom
 
     // Max iterations for fractal calculation
     const maxIterations = 100;
@@ -367,65 +371,28 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.putImageData(imageData, 0, 0);
     }
 
-    // Simplified selection with single click
+    // Direct click-to-zoom functionality
     function handleCanvasClick(e) {
         const rect = canvas.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
         const clickY = e.clientY - rect.top;
         
-        // Create a selection box around the clicked point
-        selectionStart.x = Math.max(0, clickX - 50);
-        selectionStart.y = Math.max(0, clickY - 50);
-        selectionEnd.x = Math.min(canvas.width, clickX + 50);
-        selectionEnd.y = Math.min(canvas.height, clickY + 50);
+        // Map click coordinates to complex plane
+        const cReal = xMin + (clickX / canvas.width) * (xMax - xMin);
+        const cImag = yMin + (clickY / canvas.height) * (yMax - yMin);
         
-        // Show selection and enable zoom button
-        hasSelection = true;
-        zoomBtn.disabled = false;
-        updateSelectionBox();
-    }
-
-    function updateSelectionBox() {
-        const left = Math.min(selectionStart.x, selectionEnd.x);
-        const top = Math.min(selectionStart.y, selectionEnd.y);
-        const width = Math.abs(selectionEnd.x - selectionStart.x);
-        const height = Math.abs(selectionEnd.y - selectionStart.y);
+        // Calculate new boundaries (zoom in by factor of 2.5)
+        const zoomFactor = 0.4; // 1/2.5
+        const newWidth = (xMax - xMin) * zoomFactor;
+        const newHeight = (yMax - yMin) * zoomFactor;
         
-        selectionBox.style.display = 'block';
-        selectionBox.style.left = `${left}px`;
-        selectionBox.style.top = `${top}px`;
-        selectionBox.style.width = `${width}px`;
-        selectionBox.style.height = `${height}px`;
-    }
-    
-    // Zoom to selection
-    function zoomToSelection() {
-        if (!hasSelection) return;
+        // Center the new view on the clicked point
+        xMin = cReal - newWidth / 2;
+        xMax = cReal + newWidth / 2;
+        yMin = cImag - newHeight / 2;
+        yMax = cImag + newHeight / 2;
         
-        // Calculate new boundaries based on selection
-        const selLeft = Math.min(selectionStart.x, selectionEnd.x);
-        const selRight = Math.max(selectionStart.x, selectionEnd.x);
-        const selTop = Math.min(selectionStart.y, selectionEnd.y);
-        const selBottom = Math.max(selectionStart.y, selectionEnd.y);
-        
-        // Map selection coordinates to complex plane
-        const newXMin = xMin + (selLeft / canvas.width) * (xMax - xMin);
-        const newXMax = xMin + (selRight / canvas.width) * (xMax - xMin);
-        const newYMin = yMin + (selTop / canvas.height) * (yMax - yMin);
-        const newYMax = yMin + (selBottom / canvas.height) * (yMax - yMin);
-        
-        // Update boundaries
-        xMin = newXMin;
-        xMax = newXMax;
-        yMin = newYMin;
-        yMax = newYMax;
-        
-        // Clear selection
-        hasSelection = false;
-        selectionBox.style.display = 'none';
-        zoomBtn.disabled = true;
-        
-        // Render with new boundaries
+        // Re-render with new boundaries
         renderFractal();
     }
 
@@ -463,11 +430,6 @@ document.addEventListener('DOMContentLoaded', () => {
         yMin = center - (xRange * aspectRatio) / 2;
         yMax = center + (xRange * aspectRatio) / 2;
         
-        // Clear selection
-        hasSelection = false;
-        selectionBox.style.display = 'none';
-        zoomBtn.disabled = true;
-        
         // Render with initial boundaries
         renderFractal();
     }
@@ -490,11 +452,26 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         
         if (e.touches.length === 1) {
-            // Single touch - prepare for selection or panning
-            touchStartX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
-            touchStartY = e.touches[0].clientY - canvas.getBoundingClientRect().top;
-            selectionStart.x = touchStartX;
-            selectionStart.y = touchStartY;
+            // Single touch - direct zoom
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const touchX = touch.clientX - rect.left;
+            const touchY = touch.clientY - rect.top;
+            
+            // Use the same zoom logic as click
+            const cReal = xMin + (touchX / canvas.width) * (xMax - xMin);
+            const cImag = yMin + (touchY / canvas.height) * (yMax - yMin);
+            
+            const zoomFactor = 0.4; // Same as click zoom
+            const newWidth = (xMax - xMin) * zoomFactor;
+            const newHeight = (yMax - yMin) * zoomFactor;
+            
+            xMin = cReal - newWidth / 2;
+            xMax = cReal + newWidth / 2;
+            yMin = cImag - newHeight / 2;
+            yMax = cImag + newHeight / 2;
+            
+            renderFractal();
         } else if (e.touches.length === 2) {
             // Pinch gesture - prepare for zooming
             const touch1 = e.touches[0];
@@ -509,16 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleTouchMove(e) {
         e.preventDefault();
         
-        if (e.touches.length === 1) {
-            // Single touch - update selection box
-            const touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
-            const touchY = e.touches[0].clientY - canvas.getBoundingClientRect().top;
-            selectionEnd.x = touchX;
-            selectionEnd.y = touchY;
-            updateSelectionBox();
-            hasSelection = true;
-            zoomBtn.disabled = false;
-        } else if (e.touches.length === 2) {
+        if (e.touches.length === 2) {
             // Pinch gesture - calculate zoom factor
             const touch1 = e.touches[0];
             const touch2 = e.touches[1];
@@ -544,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleTouchEnd(e) {
-        // Handle touch end if needed
+        // No action needed
     }
 
     // Helper function for pinch zoom
@@ -584,7 +552,6 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.addEventListener('touchstart', handleTouchStart, false);
     canvas.addEventListener('touchmove', handleTouchMove, false);
     canvas.addEventListener('touchend', handleTouchEnd, false);
-    zoomBtn.addEventListener('click', zoomToSelection);
     resetBtn.addEventListener('click', resetView);
     fullscreenBtn.addEventListener('click', toggleFullscreen);
     fractalTypeSelect.addEventListener('change', handleFractalTypeChange);
@@ -596,11 +563,25 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('mozfullscreenchange', handleFullscreenChange);
     document.addEventListener('MSFullscreenChange', handleFullscreenChange);
     
+    // Keyboard shortcut for fullscreen
+    document.addEventListener('keydown', (e) => {
+        // F11 or F key for fullscreen
+        if (e.key === 'F11' || e.key === 'f') {
+            e.preventDefault(); // Prevent default F11 behavior
+            toggleFullscreen();
+        }
+        
+        // Ctrl+Enter is another common fullscreen shortcut
+        if (e.key === 'Enter' && e.ctrlKey) {
+            e.preventDefault();
+            toggleFullscreen();
+        }
+    });
+    
     // Window resize event listener
     window.addEventListener('resize', resizeCanvas);
     
     // Initial setup
     resizeCanvas(); // Set canvas dimensions based on container size
     resetView(); // Set appropriate boundaries based on selected fractal type
-    zoomBtn.disabled = true;
 });
