@@ -5,12 +5,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectionBox = document.getElementById('selection');
     const zoomBtn = document.getElementById('zoomBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
     const fractalTypeSelect = document.getElementById('fractalType');
     const colorSchemeSelect = document.getElementById('colorScheme');
+    const canvasContainer = document.querySelector('.canvas-container');
 
-    // Set canvas dimensions
-    canvas.width = 800;
-    canvas.height = 600;
+    // Set initial canvas dimensions
+    let canvasWidth = 800;
+    let canvasHeight = 600;
+    
+    // Function to resize canvas based on container size
+    function resizeCanvas() {
+        const containerWidth = canvasContainer.clientWidth;
+        canvasWidth = containerWidth;
+        canvasHeight = Math.floor(containerWidth * 0.75); // 4:3 aspect ratio
+        
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+        
+        // Adjust complex plane boundaries to maintain aspect ratio
+        adjustAspectRatio();
+        
+        // Re-render with new dimensions
+        renderFractal();
+    }
 
     // Initial complex plane boundaries
     let xMin = -2.5;
@@ -21,13 +39,105 @@ document.addEventListener('DOMContentLoaded', () => {
     // Julia set constant
     const juliaConstant = { real: -0.7, imag: 0.27 };
 
-    // Adjust yMin and yMax to match canvas aspect ratio
-    const aspectRatio = canvas.height / canvas.width;
-    const xRange = xMax - xMin;
-    const yRange = yMax - yMin;
-    const center = yMin + yRange / 2;
-    yMin = center - (xRange * aspectRatio) / 2;
-    yMax = center + (xRange * aspectRatio) / 2;
+    // Function to adjust aspect ratio
+    function adjustAspectRatio() {
+        const aspectRatio = canvas.height / canvas.width;
+        const xRange = xMax - xMin;
+        const yCenter = (yMax + yMin) / 2;
+        
+        // Adjust y boundaries to match canvas aspect ratio
+        yMin = yCenter - (xRange * aspectRatio) / 2;
+        yMax = yCenter + (xRange * aspectRatio) / 2;
+    }
+    
+    // Fullscreen functionality
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            // Enter fullscreen
+            if (canvasContainer.requestFullscreen) {
+                canvasContainer.requestFullscreen();
+            } else if (canvasContainer.webkitRequestFullscreen) { /* Safari */
+                canvasContainer.webkitRequestFullscreen();
+            } else if (canvasContainer.msRequestFullscreen) { /* IE11 */
+                canvasContainer.msRequestFullscreen();
+            }
+        } else {
+            // Exit fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) { /* Safari */
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { /* IE11 */
+                document.msExitFullscreen();
+            }
+        }
+    }
+    
+    // Handle fullscreen change
+    function handleFullscreenChange() {
+        if (document.fullscreenElement) {
+            // Resize canvas to fill most of the screen, leaving room for controls
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - 100; // Leave space for controls
+            
+            // Ensure controls are visible in fullscreen mode
+            const controls = document.querySelector('.controls');
+            const info = document.querySelector('.info');
+            
+            if (controls) {
+                controls.style.position = 'fixed';
+                controls.style.bottom = '10px';
+                controls.style.left = '0';
+                controls.style.right = '0';
+                controls.style.zIndex = '1000';
+                controls.style.background = 'rgba(255, 255, 255, 0.8)';
+                controls.style.padding = '10px';
+                controls.style.borderRadius = '5px';
+            }
+            
+            if (info) {
+                info.style.position = 'fixed';
+                info.style.bottom = '70px';
+                info.style.left = '0';
+                info.style.right = '0';
+                info.style.zIndex = '1000';
+                info.style.background = 'rgba(255, 255, 255, 0.8)';
+                info.style.padding = '5px';
+            }
+        } else {
+            // Reset canvas to container size
+            resizeCanvas();
+            
+            // Reset control styles
+            const controls = document.querySelector('.controls');
+            const info = document.querySelector('.info');
+            
+            if (controls) {
+                controls.style.position = '';
+                controls.style.bottom = '';
+                controls.style.left = '';
+                controls.style.right = '';
+                controls.style.zIndex = '';
+                controls.style.background = '';
+                controls.style.padding = '';
+                controls.style.borderRadius = '';
+            }
+            
+            if (info) {
+                info.style.position = '';
+                info.style.bottom = '';
+                info.style.left = '';
+                info.style.right = '';
+                info.style.zIndex = '';
+                info.style.background = '';
+                info.style.padding = '';
+            }
+        }
+        
+        // Maintain aspect ratio and re-render
+        adjustAspectRatio();
+        renderFractal();
+    }
 
     // Selection variables
     let isSelecting = false;
@@ -372,14 +482,125 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFractal();
     }
 
+    // Touch event handlers for mobile
+    let touchStartX, touchStartY;
+    let touchStartDistance = 0;
+
+    function handleTouchStart(e) {
+        e.preventDefault();
+        
+        if (e.touches.length === 1) {
+            // Single touch - prepare for selection or panning
+            touchStartX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+            touchStartY = e.touches[0].clientY - canvas.getBoundingClientRect().top;
+            selectionStart.x = touchStartX;
+            selectionStart.y = touchStartY;
+        } else if (e.touches.length === 2) {
+            // Pinch gesture - prepare for zooming
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            touchStartDistance = Math.hypot(
+                touch2.clientX - touch1.clientX,
+                touch2.clientY - touch1.clientY
+            );
+        }
+    }
+
+    function handleTouchMove(e) {
+        e.preventDefault();
+        
+        if (e.touches.length === 1) {
+            // Single touch - update selection box
+            const touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+            const touchY = e.touches[0].clientY - canvas.getBoundingClientRect().top;
+            selectionEnd.x = touchX;
+            selectionEnd.y = touchY;
+            updateSelectionBox();
+            hasSelection = true;
+            zoomBtn.disabled = false;
+        } else if (e.touches.length === 2) {
+            // Pinch gesture - calculate zoom factor
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            const touchDistance = Math.hypot(
+                touch2.clientX - touch1.clientX,
+                touch2.clientY - touch1.clientY
+            );
+            
+            // Determine zoom direction (in or out)
+            if (Math.abs(touchDistance - touchStartDistance) > 10) {
+                const zoomCenter = {
+                    x: (touch1.clientX + touch2.clientX) / 2 - canvas.getBoundingClientRect().left,
+                    y: (touch1.clientY + touch2.clientY) / 2 - canvas.getBoundingClientRect().top
+                };
+                
+                // Implement pinch zoom logic
+                const zoomFactor = touchDistance > touchStartDistance ? 0.8 : 1.2;
+                zoomAtPoint(zoomCenter.x, zoomCenter.y, zoomFactor);
+                
+                touchStartDistance = touchDistance;
+            }
+        }
+    }
+
+    function handleTouchEnd(e) {
+        // Handle touch end if needed
+    }
+
+    // Helper function for pinch zoom
+    function zoomAtPoint(x, y, factor) {
+        // Map canvas coordinates to complex plane
+        const cReal = xMin + (x / canvas.width) * (xMax - xMin);
+        const cImag = yMin + (y / canvas.height) * (yMax - yMin);
+        
+        // Calculate new boundaries
+        const newWidth = (xMax - xMin) * factor;
+        const newHeight = (yMax - yMin) * factor;
+        
+        xMin = cReal - (x / canvas.width) * newWidth;
+        xMax = xMin + newWidth;
+        yMin = cImag - (y / canvas.height) * newHeight;
+        yMax = yMin + newHeight;
+        
+        renderFractal();
+    }
+
+    // Add collapsible controls for mobile
+    const controlsToggle = document.createElement('div');
+    controlsToggle.className = 'controls-toggle';
+    controlsToggle.textContent = 'Show Controls ▼';
+    const controls = document.querySelector('.controls');
+    controls.parentNode.insertBefore(controlsToggle, controls);
+
+    controlsToggle.addEventListener('click', () => {
+        controls.classList.toggle('collapsed');
+        controlsToggle.textContent = controls.classList.contains('collapsed') 
+            ? 'Show Controls ▼' 
+            : 'Hide Controls ▲';
+    });
+
     // Event listeners
     canvas.addEventListener('click', handleCanvasClick);
+    canvas.addEventListener('touchstart', handleTouchStart, false);
+    canvas.addEventListener('touchmove', handleTouchMove, false);
+    canvas.addEventListener('touchend', handleTouchEnd, false);
     zoomBtn.addEventListener('click', zoomToSelection);
     resetBtn.addEventListener('click', resetView);
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
     fractalTypeSelect.addEventListener('change', handleFractalTypeChange);
     colorSchemeSelect.addEventListener('change', handleColorSchemeChange);
     
+    // Fullscreen change event listeners
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    
+    // Window resize event listener
+    window.addEventListener('resize', resizeCanvas);
+    
     // Initial setup
+    resizeCanvas(); // Set canvas dimensions based on container size
     resetView(); // Set appropriate boundaries based on selected fractal type
     zoomBtn.disabled = true;
 });
