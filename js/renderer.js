@@ -264,4 +264,29 @@ export class FractalRenderer {
             }
         };
     }
+    
+    /**
+     * Get the current center point of the view in complex plane coordinates
+     * @returns {Object} Center point with real and imaginary components
+     */
+    getViewCenter() {
+        return {
+            real: (this.boundaries.xMin + this.boundaries.xMax) / 2,
+            imag: (this.boundaries.yMin + this.boundaries.yMax) / 2
+        };
+    }
+    
+    /**
+     * Set the view to center on a specific point with the current zoom level
+     * @param {Object} center - Center point with real and imaginary components
+     */
+    centerViewOn(center) {
+        const xRange = this.boundaries.xMax - this.boundaries.xMin;
+        const yRange = this.boundaries.yMax - this.boundaries.yMin;
+        
+        this.boundaries.xMin = center.real - xRange / 2;
+        this.boundaries.xMax = center.real + xRange / 2;
+        this.boundaries.yMin = center.imag - yRange / 2;
+        this.boundaries.yMax = center.imag + yRange / 2;
+    }
 }

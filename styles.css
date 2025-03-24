@@ -233,34 +233,6 @@ button:disabled {
     font-size: 14px;
 }
 
-/* Floating controls for fullscreen mode */
-#floating-controls {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    z-index: 9999;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    max-width: 350px;
-    max-height: 80vh;
-    overflow-y: auto;
-    pointer-events: auto;
-}
-
-#floating-controls .controls {
-    margin: 0;
-}
-
-#floating-controls .fractal-description-box {
-    margin-top: 10px;
-}
-
-#floating-controls-content {
-    padding-top: 10px;
-}
-
 /* Mobile styles */
 @media (max-width: 768px) {
     .container {
