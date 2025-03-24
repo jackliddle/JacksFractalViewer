@@ -365,6 +365,10 @@ export class UI {
      */
     handleFullscreenChange() {
         if (document.fullscreenElement) {
+            // Store original canvas dimensions before fullscreen
+            this.originalCanvasWidth = this.canvas.width;
+            this.originalCanvasHeight = this.canvas.height;
+            
             // Resize canvas to fill the entire screen
             this.canvas.width = window.innerWidth;
             this.canvas.height = window.innerHeight;
@@ -445,7 +449,20 @@ export class UI {
                 
                 floatingControls.appendChild(toggleBtn);
                 floatingControls.appendChild(controlsContent);
-                document.body.appendChild(floatingControls);
+                
+                // Append to the fullscreen element instead of document.body for better Chrome compatibility
+                const fullscreenElement = document.fullscreenElement || 
+                                         document.webkitFullscreenElement || 
+                                         document.mozFullScreenElement || 
+                                         document.msFullscreenElement;
+                
+                if (fullscreenElement) {
+                    fullscreenElement.appendChild(floatingControls);
+                    console.log('Floating controls added to fullscreen element');
+                } else {
+                    document.body.appendChild(floatingControls);
+                    console.log('Floating controls added to document body');
+                }
                 
                 // Add event listeners to the cloned controls
                 const clonedResetBtn = floatingControls.querySelector('#resetBtn');
@@ -502,8 +519,8 @@ export class UI {
                 floatingControls.style.display = 'block';
             }
         } else {
-            // Reset canvas to container size
-            this.handleResize();
+            // Restore canvas dimensions to pre-fullscreen state
+            this.restoreCanvasDimensions();
             
             // Remove floating controls
             const floatingControls = document.getElementById('floating-controls');
@@ -561,6 +578,24 @@ export class UI {
         // Re-render with new dimensions
         this.renderer.adjustAspectRatio();
         this.renderer.render();
+    }
+    
+    /**
+     * Restore canvas dimensions after exiting fullscreen
+     */
+    restoreCanvasDimensions() {
+        if (this.originalCanvasWidth && this.originalCanvasHeight) {
+            // Restore original canvas dimensions
+            this.canvas.width = this.originalCanvasWidth;
+            this.canvas.height = this.originalCanvasHeight;
+            
+            // Clear the stored dimensions
+            this.originalCanvasWidth = null;
+            this.originalCanvasHeight = null;
+        } else {
+            // Fallback to container dimensions if original dimensions not available
+            this.handleResize();
+        }
     }
     
     /**
