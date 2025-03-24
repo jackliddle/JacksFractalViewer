@@ -11,6 +11,8 @@ import { PhoenixFractal } from './plugins/fractals/phoenix.js';
 import { SpectrumColorScheme } from './plugins/colorSchemes/spectrum.js';
 import { FireColorScheme } from './plugins/colorSchemes/fire.js';
 import { RainbowColorScheme } from './plugins/colorSchemes/rainbow.js';
+import { NeonColorScheme } from './plugins/colorSchemes/neon.js';
+import { OceanColorScheme } from './plugins/colorSchemes/ocean.js';
 
 /**
  * Main Fractal Viewer application class
@@ -63,9 +65,11 @@ class FractalViewer {
         this.registry.registerFractal('phoenix', PhoenixFractal);
         
         // Register color schemes
+        this.registry.registerColorScheme('rainbow', RainbowColorScheme); // Rainbow first as default
         this.registry.registerColorScheme('spectrum', SpectrumColorScheme);
         this.registry.registerColorScheme('fire', FireColorScheme);
-        this.registry.registerColorScheme('rainbow', RainbowColorScheme);
+        this.registry.registerColorScheme('neon', NeonColorScheme);
+        this.registry.registerColorScheme('ocean', OceanColorScheme);
     }
     
     /**
