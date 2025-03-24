@@ -389,39 +389,48 @@ export class UI {
      */
     handleFullscreenChange() {
         if (document.fullscreenElement) {
-            // Store the current view center before changing dimensions
-            this.viewCenterBeforeFullscreen = this.renderer.getViewCenter();
+            // Entering fullscreen
             
-            // Store original canvas dimensions before fullscreen
-            this.originalCanvasWidth = this.canvas.width;
-            this.originalCanvasHeight = this.canvas.height;
+            // Store the center point and zoom level before fullscreen
+            const centerX = (this.renderer.boundaries.xMin + this.renderer.boundaries.xMax) / 2;
+            const centerY = (this.renderer.boundaries.yMin + this.renderer.boundaries.yMax) / 2;
+            const xRange = this.renderer.boundaries.xMax - this.renderer.boundaries.xMin;
             
-            // Resize canvas to fill the entire screen
-            this.canvas.width = window.innerWidth;
-            this.canvas.height = window.innerHeight;
+            // Store this information for later use
+            this.fullscreenState = {
+                centerX: centerX,
+                centerY: centerY,
+                xRange: xRange,
+                originalAspectRatio: this.canvas.height / this.canvas.width
+            };
             
             // Hide controls column in fullscreen mode
             const controlsColumn = document.querySelector('.controls-column');
-            
-            // Store original display state to restore later
             if (controlsColumn) {
                 controlsColumn.dataset.originalDisplay = controlsColumn.style.display;
                 controlsColumn.style.display = 'none';
             }
             
-            // Adjust aspect ratio for new dimensions
-            this.renderer.adjustAspectRatio();
+            // Resize canvas to fill the entire screen
+            this.canvas.width = window.innerWidth;
+            this.canvas.height = window.innerHeight;
             
-            // Re-center the view on the same point
-            if (this.viewCenterBeforeFullscreen) {
-                this.renderer.centerViewOn(this.viewCenterBeforeFullscreen);
-            }
+            // Calculate new boundaries that maintain the center point and zoom level
+            // but adjust for the new aspect ratio
+            const newAspectRatio = this.canvas.height / this.canvas.width;
+            const newYRange = xRange * newAspectRatio;
+            
+            this.renderer.boundaries = {
+                xMin: centerX - xRange / 2,
+                xMax: centerX + xRange / 2,
+                yMin: centerY - newYRange / 2,
+                yMax: centerY + newYRange / 2
+            };
+            
+            // Re-render with new boundaries
+            this.renderer.render();
         } else {
-            // Store the current view center before changing dimensions
-            const viewCenterBeforeExit = this.renderer.getViewCenter();
-            
-            // Restore canvas dimensions to pre-fullscreen state
-            this.restoreCanvasDimensions();
+            // Exiting fullscreen
             
             // Restore original layout
             const controlsColumn = document.querySelector('.controls-column');
@@ -429,17 +438,37 @@ export class UI {
                 controlsColumn.style.display = controlsColumn.dataset.originalDisplay;
             }
             
-            // Adjust aspect ratio for new dimensions
-            this.renderer.adjustAspectRatio();
+            // Get the current center point before changing dimensions
+            const currentCenterX = (this.renderer.boundaries.xMin + this.renderer.boundaries.xMax) / 2;
+            const currentCenterY = (this.renderer.boundaries.yMin + this.renderer.boundaries.yMax) / 2;
+            const currentXRange = this.renderer.boundaries.xMax - this.renderer.boundaries.xMin;
             
-            // Re-center the view on the same point
-            if (viewCenterBeforeExit) {
-                this.renderer.centerViewOn(viewCenterBeforeExit);
+            // Resize canvas to match container
+            const containerWidth = this.canvasContainer.clientWidth;
+            const containerHeight = this.canvasContainer.clientHeight;
+            this.canvas.width = containerWidth;
+            this.canvas.height = containerHeight;
+            
+            if (this.fullscreenState) {
+                // Calculate new boundaries that maintain the same center and zoom level
+                // but adjust for the new aspect ratio
+                const newAspectRatio = this.canvas.height / this.canvas.width;
+                const newYRange = currentXRange * newAspectRatio;
+                
+                this.renderer.boundaries = {
+                    xMin: currentCenterX - currentXRange / 2,
+                    xMax: currentCenterX + currentXRange / 2,
+                    yMin: currentCenterY - newYRange / 2,
+                    yMax: currentCenterY + newYRange / 2
+                };
+            } else {
+                // Fallback if state wasn't stored
+                this.renderer.adjustAspectRatio();
             }
+            
+            // Re-render with new boundaries
+            this.renderer.render();
         }
-        
-        // Re-render with new dimensions and centered view
-        this.renderer.render();
     }
     
     /**
