@@ -87,10 +87,63 @@ canvas {
     margin-top: 20px;
 }
 
+.selectors-row {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+}
+
+.selectors-row .control-group {
+    flex: 1;
+    min-width: 0; /* Prevents overflow issues */
+}
+
+.buttons-row {
+    display: flex;
+    flex-direction: row !important;
+    gap: 10px;
+    width: 100%;
+}
+
+.buttons-row button {
+    flex: 1;
+    padding: 12px 16px; /* Make buttons deeper */
+}
+
 .control-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+
+.fractal-description-box {
+    margin-top: 15px;
+    padding: 12px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.fractal-description-box h4 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0 0 8px 0;
+    color: #333;
+}
+
+.fractal-description-box p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+}
+
+.instructions {
+    font-size: 14px;
+    color: #666;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
 label {
@@ -136,7 +189,8 @@ button:disabled {
     text-align: center;
     font-size: 14px;
     color: #666;
-    margin-top: 20px;
+    margin-top: auto;
+    padding-top: 20px;
 }
 
 .controls-toggle {
@@ -151,6 +205,32 @@ button:disabled {
 
 .controls.collapsed {
     display: none;
+}
+
+/* Custom controls for fractals */
+.custom-controls {
+    margin-top: 15px;
+    text-align: left;
+}
+
+.julia-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    align-items: center;
+    text-align: left;
+}
+
+.julia-controls label {
+    text-align: left;
+}
+
+.julia-controls input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
 }
 
 /* Mobile styles */

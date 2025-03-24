@@ -45,10 +45,26 @@ export class UI {
         // Add event listeners
         this.addEventListeners();
         
-        // Add custom controls container to the DOM
-        const controlsColumn = document.querySelector('.controls-column');
-        if (controlsColumn) {
-            controlsColumn.appendChild(this.customControlsContainer);
+        // Get UI elements
+        this.fractalNameElement = document.getElementById('fractalName');
+        this.fractalDescriptionElement = document.getElementById('fractalDescription');
+        this.instructionsElement = document.querySelector('.instructions');
+        this.infoElement = document.querySelector('.info');
+        
+        // Add custom controls container after the fractal description box
+        const descriptionBox = document.querySelector('.fractal-description-box');
+        if (descriptionBox) {
+            descriptionBox.after(this.customControlsContainer);
+        }
+        
+        // Initialize fractal description with the current fractal
+        const fractalId = this.fractalSelect.value;
+        const options = { maxIterations: this.renderer.maxIterations };
+        try {
+            const fractal = this.registry.getFractal(fractalId, options);
+            this.updateFractalDescription(fractal);
+        } catch (error) {
+            console.error('Error initializing fractal description:', error);
         }
         
         // Ensure canvas is properly sized before first render
@@ -143,6 +159,12 @@ export class UI {
         
         // Render complete event
         this.canvas.addEventListener('fractalRendered', (e) => this.updateRenderInfo(e.detail));
+        
+        // Listen for fractal parameter changes
+        document.addEventListener('fractalParametersChanged', () => {
+            // Re-render the fractal when parameters change
+            this.renderer.render();
+        });
     }
     
     /**
@@ -162,10 +184,29 @@ export class UI {
             // Update custom controls
             this.updateCustomControls(fractal);
             
+            // Update fractal description
+            this.updateFractalDescription(fractal);
+            
             // Reset view to default boundaries for this fractal
             this.renderer.resetView();
         } catch (error) {
             console.error('Error changing fractal type:', error);
+        }
+    }
+    
+    /**
+     * Update the fractal description display
+     * @param {Object} fractal - Fractal instance
+     */
+    updateFractalDescription(fractal) {
+        if (fractal) {
+            if (this.fractalNameElement) {
+                this.fractalNameElement.textContent = fractal.name;
+            }
+            
+            if (this.fractalDescriptionElement && fractal.description) {
+                this.fractalDescriptionElement.textContent = fractal.description;
+            }
         }
     }
     
@@ -204,17 +245,6 @@ export class UI {
         if (controls) {
             // Add controls to container
             this.customControlsContainer.appendChild(controls);
-            
-            // Add apply button
-            const applyBtn = document.createElement('button');
-            applyBtn.textContent = 'Apply';
-            applyBtn.className = 'apply-btn';
-            applyBtn.addEventListener('click', () => {
-                fractal.updateFromControls(this.customControlsContainer);
-                this.renderer.render();
-            });
-            
-            this.customControlsContainer.appendChild(applyBtn);
             
             // Show custom controls
             this.customControlsContainer.style.display = 'block';
@@ -379,13 +409,34 @@ export class UI {
                 const controlsContent = document.createElement('div');
                 controlsContent.id = 'floating-controls-content';
                 
-                // Clone controls and info
+                // Clone controls, instructions, and info
                 if (controls) {
                     const clonedControls = controls.cloneNode(true);
                     clonedControls.style.margin = '0';
                     controlsContent.appendChild(clonedControls);
+                    
+                    // Update the fractal name and description in the cloned controls
+                    const clonedNameElement = clonedControls.querySelector('#fractalName');
+                    const clonedDescriptionElement = clonedControls.querySelector('#fractalDescription');
+                    
+                    if (clonedNameElement && this.fractalNameElement) {
+                        clonedNameElement.textContent = this.fractalNameElement.textContent;
+                    }
+                    
+                    if (clonedDescriptionElement && this.fractalDescriptionElement) {
+                        clonedDescriptionElement.textContent = this.fractalDescriptionElement.textContent;
+                    }
                 }
                 
+                // Clone instructions
+                const instructions = document.querySelector('.instructions');
+                if (instructions) {
+                    const clonedInstructions = instructions.cloneNode(true);
+                    clonedInstructions.style.margin = '10px 0';
+                    controlsContent.appendChild(clonedInstructions);
+                }
+                
+                // Clone info (render time)
                 if (info) {
                     const clonedInfo = info.cloneNode(true);
                     clonedInfo.style.margin = '10px 0 0 0';
@@ -414,6 +465,18 @@ export class UI {
                     clonedFractalTypeSelect.addEventListener('change', () => {
                         this.fractalSelect.value = clonedFractalTypeSelect.value;
                         this.handleFractalTypeChange();
+                        
+                        // Update the cloned fractal name and description when fractal type changes
+                        const clonedNameElement = floatingControls.querySelector('#fractalName');
+                        const clonedDescriptionElement = floatingControls.querySelector('#fractalDescription');
+                        
+                        if (clonedNameElement && this.fractalNameElement) {
+                            clonedNameElement.textContent = this.fractalNameElement.textContent;
+                        }
+                        
+                        if (clonedDescriptionElement && this.fractalDescriptionElement) {
+                            clonedDescriptionElement.textContent = this.fractalDescriptionElement.textContent;
+                        }
                     });
                 }
                 
@@ -508,7 +571,6 @@ export class UI {
         if (this.infoElement) {
             const renderTimeMs = info.renderTime.toFixed(2);
             this.infoElement.innerHTML = `
-                <p>Click anywhere on the fractal to zoom in. Press F11 or click the Fullscreen button for fullscreen mode.</p>
                 <p>Fractal: ${info.fractalType} | Color Scheme: ${info.colorScheme} | Render Time: ${renderTimeMs}ms</p>
             `;
         }

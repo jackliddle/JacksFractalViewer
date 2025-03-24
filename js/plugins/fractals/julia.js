@@ -89,6 +89,25 @@ export class JuliaFractal extends FractalBase {
         imagInput.step = '0.01';
         imagInput.value = this.constant.imag;
         
+        // Store reference to this for event handlers
+        const self = this;
+        
+        // Add event listeners for real-time updates
+        const updateFractal = () => {
+            self.constant.real = parseFloat(realInput.value);
+            self.constant.imag = parseFloat(imagInput.value);
+            
+            // Dispatch a custom event to notify that parameters have changed
+            const event = new CustomEvent('fractalParametersChanged', {
+                detail: { fractal: self }
+            });
+            document.dispatchEvent(event);
+        };
+        
+        // Update on input (while typing or using arrows)
+        realInput.addEventListener('input', updateFractal);
+        imagInput.addEventListener('input', updateFractal);
+        
         container.appendChild(realLabel);
         container.appendChild(realInput);
         container.appendChild(imagLabel);
