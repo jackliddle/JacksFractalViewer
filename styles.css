@@ -293,7 +293,7 @@ button:disabled {
     text-align: left;
 }
 
-.julia-controls {
+.julia-controls, .phoenix-controls {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
@@ -301,11 +301,11 @@ button:disabled {
     text-align: left;
 }
 
-.julia-controls label {
+.julia-controls label, .phoenix-controls label {
     text-align: left;
 }
 
-.julia-controls input {
+.julia-controls input, .phoenix-controls input {
     width: 100%;
     padding: 6px 10px;
     border: 1px solid #ddd;
