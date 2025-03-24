@@ -8,37 +8,46 @@
 </head>
 <body>
     <div class="container">
-        <h1>Jacks Fractal Viewer</h1>
-        <div class="repo-link">
-            <a href="https://github.com/jackliddle/JacksFractalViewer" target="_blank">View on GitHub</a>
-        </div>
-        <div class="canvas-container">
-            <canvas id="mandelbrotCanvas"></canvas>
-        </div>
-        <div class="controls">
-            <div class="control-group">
-                <label for="fractalType">Fractal Type:</label>
-                <select id="fractalType">
-                    <option value="mandelbrot">Mandelbrot Set</option>
-                    <option value="julia" selected>Julia Set</option>
-                    <option value="burningShip">Burning Ship</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label for="colorScheme">Color Scheme:</label>
-                <select id="colorScheme">
-                    <option value="spectrum">Spectrum Blue</option>
-                    <option value="fire">Fire</option>
-                    <option value="rainbow" selected>Rainbow</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <button id="resetBtn">Reset View</button>
-                <button id="fullscreenBtn">Fullscreen (F11)</button>
+        <!-- Left Column - Fractal Display -->
+        <div class="fractal-column">
+            <div class="canvas-container">
+                <canvas id="mandelbrotCanvas"></canvas>
             </div>
         </div>
-        <div class="info">
-            <p>Click anywhere on the fractal to zoom in. Press F11 or click the Fullscreen button for fullscreen mode.</p>
+        
+        <!-- Right Column - Controls & Info -->
+        <div class="controls-column">
+            <h1>Jacks Fractal Viewer</h1>
+            <div class="repo-link">
+                <a href="https://github.com/jackliddle/JacksFractalViewer" target="_blank">View on GitHub</a>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="fractalType">Fractal Type:</label>
+                    <select id="fractalType">
+                        <option value="mandelbrot">Mandelbrot Set</option>
+                        <option value="julia" selected>Julia Set</option>
+                        <option value="burningShip">Burning Ship</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="colorScheme">Color Scheme:</label>
+                    <select id="colorScheme">
+                        <option value="spectrum">Spectrum Blue</option>
+                        <option value="fire">Fire</option>
+                        <option value="rainbow" selected>Rainbow</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <button id="resetBtn">Reset View</button>
+                    <button id="fullscreenBtn">Fullscreen (F11)</button>
+                </div>
+            </div>
+            
+            <div class="info">
+                <p>Click anywhere on the fractal to zoom in. Press F11 or click the Fullscreen button for fullscreen mode.</p>
+            </div>
         </div>
     </div>
     <script src="script.js"></script>

@@ -14,9 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to resize canvas based on container size
     function resizeCanvas() {
+        // Get the dimensions of the canvas container
         const containerWidth = canvasContainer.clientWidth;
+        const containerHeight = canvasContainer.clientHeight;
+        
+        // Set canvas dimensions to match container
         canvasWidth = containerWidth;
-        canvasHeight = Math.floor(containerWidth * 0.75); // 4:3 aspect ratio
+        canvasHeight = containerHeight;
         
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
@@ -52,12 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleFullscreen() {
         if (!document.fullscreenElement) {
             // Enter fullscreen
-            if (canvasContainer.requestFullscreen) {
-                canvasContainer.requestFullscreen();
-            } else if (canvasContainer.webkitRequestFullscreen) { /* Safari */
-                canvasContainer.webkitRequestFullscreen();
-            } else if (canvasContainer.msRequestFullscreen) { /* IE11 */
-                canvasContainer.msRequestFullscreen();
+            const fractalColumn = document.querySelector('.fractal-column');
+            if (fractalColumn.requestFullscreen) {
+                fractalColumn.requestFullscreen();
+            } else if (fractalColumn.webkitRequestFullscreen) { /* Safari */
+                fractalColumn.webkitRequestFullscreen();
+            } else if (fractalColumn.msRequestFullscreen) { /* IE11 */
+                fractalColumn.msRequestFullscreen();
             }
         } else {
             // Exit fullscreen
@@ -74,71 +79,117 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle fullscreen change
     function handleFullscreenChange() {
         if (document.fullscreenElement) {
-            // Resize canvas to fill most of the screen, leaving room for controls
+            // Resize canvas to fill the entire screen
             canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight - 100; // Leave space for controls
+            canvas.height = window.innerHeight;
             
-            // Ensure controls are visible in fullscreen mode
+            // Create floating controls for fullscreen mode
+            const controlsColumn = document.querySelector('.controls-column');
             const controls = document.querySelector('.controls');
             const info = document.querySelector('.info');
             
-            if (controls) {
-                controls.style.position = 'fixed';
-                controls.style.bottom = '10px';
-                controls.style.left = '0';
-                controls.style.right = '0';
-                controls.style.zIndex = '1000';
-                controls.style.background = 'rgba(255, 255, 255, 0.8)';
-                controls.style.padding = '10px';
-                controls.style.borderRadius = '5px';
-                controls.style.margin = '0';
-                controls.style.display = 'flex';
-                controls.style.justifyContent = 'center';
+            // Store original display state to restore later
+            if (controlsColumn) {
+                controlsColumn.dataset.originalDisplay = controlsColumn.style.display;
+                controlsColumn.style.display = 'none';
             }
             
-            if (info) {
-                info.style.position = 'fixed';
-                info.style.bottom = '70px';
-                info.style.left = '0';
-                info.style.right = '0';
-                info.style.zIndex = '1000';
-                info.style.background = 'rgba(255, 255, 255, 0.8)';
-                info.style.padding = '5px';
-                info.style.margin = '0';
-                info.style.textAlign = 'center';
+            // Create floating controls container
+            let floatingControls = document.getElementById('floating-controls');
+            if (!floatingControls) {
+                floatingControls = document.createElement('div');
+                floatingControls.id = 'floating-controls';
+                floatingControls.style.position = 'fixed';
+                floatingControls.style.bottom = '10px';
+                floatingControls.style.right = '10px';
+                floatingControls.style.zIndex = '1000';
+                floatingControls.style.background = 'rgba(255, 255, 255, 0.8)';
+                floatingControls.style.padding = '10px';
+                floatingControls.style.borderRadius = '5px';
+                floatingControls.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.3)';
+                
+                // Add minimize/maximize toggle
+                const toggleBtn = document.createElement('button');
+                toggleBtn.textContent = '−';
+                toggleBtn.style.position = 'absolute';
+                toggleBtn.style.top = '5px';
+                toggleBtn.style.right = '5px';
+                toggleBtn.style.padding = '0 5px';
+                toggleBtn.style.background = 'transparent';
+                toggleBtn.style.border = 'none';
+                toggleBtn.style.fontSize = '16px';
+                toggleBtn.style.cursor = 'pointer';
+                
+                const controlsContent = document.createElement('div');
+                controlsContent.id = 'floating-controls-content';
+                
+                // Clone controls and info
+                if (controls) {
+                    const clonedControls = controls.cloneNode(true);
+                    clonedControls.style.margin = '0';
+                    controlsContent.appendChild(clonedControls);
+                }
+                
+                if (info) {
+                    const clonedInfo = info.cloneNode(true);
+                    clonedInfo.style.margin = '10px 0 0 0';
+                    controlsContent.appendChild(clonedInfo);
+                }
+                
+                floatingControls.appendChild(toggleBtn);
+                floatingControls.appendChild(controlsContent);
+                document.body.appendChild(floatingControls);
+                
+                // Add event listeners to the cloned controls
+                const clonedResetBtn = floatingControls.querySelector('#resetBtn');
+                const clonedFullscreenBtn = floatingControls.querySelector('#fullscreenBtn');
+                const clonedFractalTypeSelect = floatingControls.querySelector('#fractalType');
+                const clonedColorSchemeSelect = floatingControls.querySelector('#colorScheme');
+                
+                if (clonedResetBtn) {
+                    clonedResetBtn.addEventListener('click', resetView);
+                }
+                
+                if (clonedFullscreenBtn) {
+                    clonedFullscreenBtn.addEventListener('click', toggleFullscreen);
+                }
+                
+                if (clonedFractalTypeSelect) {
+                    clonedFractalTypeSelect.addEventListener('change', handleFractalTypeChange);
+                }
+                
+                if (clonedColorSchemeSelect) {
+                    clonedColorSchemeSelect.addEventListener('change', handleColorSchemeChange);
+                }
+                
+                // Toggle button functionality
+                toggleBtn.addEventListener('click', () => {
+                    const content = document.getElementById('floating-controls-content');
+                    if (content.style.display === 'none') {
+                        content.style.display = 'block';
+                        toggleBtn.textContent = '−';
+                    } else {
+                        content.style.display = 'none';
+                        toggleBtn.textContent = '+';
+                    }
+                });
+            } else {
+                floatingControls.style.display = 'block';
             }
         } else {
             // Reset canvas to container size
             resizeCanvas();
             
-            // Reset control styles
-            const controls = document.querySelector('.controls');
-            const info = document.querySelector('.info');
-            
-            if (controls) {
-                controls.style.position = '';
-                controls.style.bottom = '';
-                controls.style.left = '';
-                controls.style.right = '';
-                controls.style.zIndex = '';
-                controls.style.background = '';
-                controls.style.padding = '';
-                controls.style.borderRadius = '';
-                controls.style.margin = '';
-                controls.style.display = '';
-                controls.style.justifyContent = '';
+            // Remove floating controls
+            const floatingControls = document.getElementById('floating-controls');
+            if (floatingControls) {
+                floatingControls.style.display = 'none';
             }
             
-            if (info) {
-                info.style.position = '';
-                info.style.bottom = '';
-                info.style.left = '';
-                info.style.right = '';
-                info.style.zIndex = '';
-                info.style.background = '';
-                info.style.padding = '';
-                info.style.margin = '';
-                info.style.textAlign = '';
+            // Restore original layout
+            const controlsColumn = document.querySelector('.controls-column');
+            if (controlsColumn && controlsColumn.dataset.originalDisplay !== undefined) {
+                controlsColumn.style.display = controlsColumn.dataset.originalDisplay;
             }
         }
         
