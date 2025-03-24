@@ -145,6 +145,49 @@ canvas {
     border: 1px solid #ddd;
     border-radius: 4px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.fractal-description-content {
+    max-height: 100px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.fractal-description-content.expanded {
+    max-height: 1000px; /* Large enough to contain all content */
+}
+
+.description-toggle {
+    display: block;
+    margin-top: 8px;
+    text-align: center;
+    color: #4CAF50;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    padding: 5px;
+    width: 100%;
+}
+
+.description-toggle:hover {
+    text-decoration: underline;
+}
+
+.description-fade {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    background: linear-gradient(to bottom, rgba(249, 249, 249, 0), rgba(249, 249, 249, 1));
+    pointer-events: none;
+}
+
+.expanded + .description-fade {
+    display: none;
 }
 
 .fractal-description-box h4 {

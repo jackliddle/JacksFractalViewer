@@ -205,7 +205,31 @@ export class UI {
             }
             
             if (this.fractalDescriptionElement && fractal.description) {
-                this.fractalDescriptionElement.innerHTML = fractal.description;
+                // Clear previous content
+                this.fractalDescriptionElement.innerHTML = '';
+                
+                // Create content container
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'fractal-description-content';
+                contentDiv.innerHTML = fractal.description;
+                
+                // Create fade effect
+                const fadeDiv = document.createElement('div');
+                fadeDiv.className = 'description-fade';
+                
+                // Create toggle button
+                const toggleButton = document.createElement('button');
+                toggleButton.className = 'description-toggle';
+                toggleButton.textContent = 'Read more';
+                toggleButton.addEventListener('click', () => {
+                    const isExpanded = contentDiv.classList.toggle('expanded');
+                    toggleButton.textContent = isExpanded ? 'Show less' : 'Read more';
+                });
+                
+                // Add elements to description
+                this.fractalDescriptionElement.appendChild(contentDiv);
+                this.fractalDescriptionElement.appendChild(fadeDiv);
+                this.fractalDescriptionElement.appendChild(toggleButton);
             }
         }
     }

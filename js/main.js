@@ -6,6 +6,7 @@ import { UI } from './ui.js';
 import { MandelbrotFractal } from './plugins/fractals/mandelbrot.js';
 import { JuliaFractal } from './plugins/fractals/julia.js';
 import { BurningShipFractal } from './plugins/fractals/burningShip.js';
+import { NovaFractal } from './plugins/fractals/nova.js';
 import { SpectrumColorScheme } from './plugins/colorSchemes/spectrum.js';
 import { FireColorScheme } from './plugins/colorSchemes/fire.js';
 import { RainbowColorScheme } from './plugins/colorSchemes/rainbow.js';
@@ -57,6 +58,7 @@ class FractalViewer {
         this.registry.registerFractal('mandelbrot', MandelbrotFractal);
         this.registry.registerFractal('julia', JuliaFractal);
         this.registry.registerFractal('burningShip', BurningShipFractal);
+        this.registry.registerFractal('nova', NovaFractal);
         
         // Register color schemes
         this.registry.registerColorScheme('spectrum', SpectrumColorScheme);

@@ -167,10 +167,22 @@ export class FractalRenderer {
                         const cImag = this.boundaries.yMin + (y / this.canvas.height) * (this.boundaries.yMax - this.boundaries.yMin);
                         
                         // Calculate iterations for this point
-                        const iterations = this.fractal.calculate(cReal, cImag);
+                        const result = this.fractal.calculate(cReal, cImag);
                         
-                        // Get RGB color based on iterations
-                        const rgb = this.colorScheme.getColor(iterations);
+                        // Handle both simple iteration count and complex result (for Nova fractal)
+                        let iterations, rootIndex;
+                        if (typeof result === 'object' && result.iterations !== undefined) {
+                            iterations = result.iterations;
+                            rootIndex = result.rootIndex;
+                        } else {
+                            iterations = result;
+                            rootIndex = -1;
+                        }
+                        
+                        // Get RGB color based on iterations and root index (if available)
+                        const rgb = rootIndex >= 0 
+                            ? this.getNovaColor(iterations, rootIndex) 
+                            : this.colorScheme.getColor(iterations);
                         
                         // Fill a block of pixels with the same color
                         for (let dx = 0; dx < step && x + dx < this.canvas.width; dx++) {
@@ -212,10 +224,22 @@ export class FractalRenderer {
                         const cImag = this.boundaries.yMin + (y / this.canvas.height) * (this.boundaries.yMax - this.boundaries.yMin);
                         
                         // Calculate iterations for this point
-                        const iterations = this.fractal.calculate(cReal, cImag);
+                        const result = this.fractal.calculate(cReal, cImag);
                         
-                        // Get RGB color based on iterations
-                        const rgb = this.colorScheme.getColor(iterations);
+                        // Handle both simple iteration count and complex result (for Nova fractal)
+                        let iterations, rootIndex;
+                        if (typeof result === 'object' && result.iterations !== undefined) {
+                            iterations = result.iterations;
+                            rootIndex = result.rootIndex;
+                        } else {
+                            iterations = result;
+                            rootIndex = -1;
+                        }
+                        
+                        // Get RGB color based on iterations and root index (if available)
+                        const rgb = rootIndex >= 0 
+                            ? this.getNovaColor(iterations, rootIndex) 
+                            : this.colorScheme.getColor(iterations);
                         
                         // Set pixel color in image data
                         const pixelIndex = (y * this.canvas.width + x) * 4;
@@ -288,5 +312,43 @@ export class FractalRenderer {
         this.boundaries.xMax = center.real + xRange / 2;
         this.boundaries.yMin = center.imag - yRange / 2;
         this.boundaries.yMax = center.imag + yRange / 2;
+    }
+    
+    /**
+     * Get color for Nova fractal based on root index and iteration count
+     * @param {number} iterations - Number of iterations
+     * @param {number} rootIndex - Index of the root the point converged to
+     * @returns {Object} RGB color object
+     */
+    getNovaColor(iterations, rootIndex) {
+        // Base colors for each root (red, green, blue)
+        const rootColors = [
+            { r: 255, g: 0, b: 0 },    // Root 0: Red
+            { r: 0, g: 255, b: 0 },    // Root 1: Green
+            { r: 0, g: 0, b: 255 }     // Root 2: Blue
+        ];
+        
+        // If we didn't converge to a root, use the color scheme
+        if (rootIndex < 0 || rootIndex >= rootColors.length) {
+            return this.colorScheme.getColor(iterations);
+        }
+        
+        // Get base color for this root
+        const baseColor = rootColors[rootIndex];
+        
+        // If we reached max iterations, return black
+        if (iterations >= this.maxIterations) {
+            return { r: 0, g: 0, b: 0 };
+        }
+        
+        // Calculate brightness based on iteration count (faster convergence = brighter)
+        const brightness = 0.5 + 0.5 * (1 - iterations / this.maxIterations);
+        
+        // Apply brightness to the base color
+        return {
+            r: Math.floor(baseColor.r * brightness),
+            g: Math.floor(baseColor.g * brightness),
+            b: Math.floor(baseColor.b * brightness)
+        };
     }
 }
