@@ -205,7 +205,7 @@ export class UI {
             }
             
             if (this.fractalDescriptionElement && fractal.description) {
-                this.fractalDescriptionElement.textContent = fractal.description;
+                this.fractalDescriptionElement.innerHTML = fractal.description;
             }
         }
     }

@@ -160,6 +160,21 @@ canvas {
     line-height: 1.5;
 }
 
+.fractal-description-box ul {
+    padding-left: 20px;
+    margin: 8px 0;
+    list-style-position: inside;
+}
+
+.fractal-description-box li {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 4px;
+    text-indent: -1em;
+    padding-left: 1em;
+}
+
 .instructions {
     font-size: 14px;
     color: #666;
