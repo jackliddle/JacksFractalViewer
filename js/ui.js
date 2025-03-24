@@ -571,7 +571,7 @@ export class UI {
         if (this.infoElement) {
             const renderTimeMs = info.renderTime.toFixed(2);
             this.infoElement.innerHTML = `
-                <p>Fractal: ${info.fractalType} | Color Scheme: ${info.colorScheme} | Render Time: ${renderTimeMs}ms</p>
+                <p>Render Time: ${renderTimeMs}ms</p>
             `;
         }
     }
